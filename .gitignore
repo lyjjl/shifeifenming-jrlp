@@ -2,7 +2,18 @@ IGN_*.*
 
 .vscode
 .venv
+venv/
+.idea
 
 __pycache__
 response.json
-.idea
+
+# Build artifacts
+node_modules/
+dist/
+dev/
+build/
+
+# Lockfiles (pnpm only)
+package-lock.json
+yarn.lock

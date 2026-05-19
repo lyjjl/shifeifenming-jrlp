@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 
 def rename_brackets(folder_path):
     if not os.path.exists(folder_path):
@@ -7,8 +9,8 @@ def rename_brackets(folder_path):
 
     count = 0
     for filename in os.listdir(folder_path):
-        if '[' in filename or ']' in filename:
-            new_name = filename.replace('[', '(').replace(']', ')')
+        if "[" in filename or "]" in filename:
+            new_name = filename.replace("[", "(").replace("]", ")")
 
             old_path = os.path.join(folder_path, filename)
             new_path = os.path.join(folder_path, new_name)
@@ -24,5 +26,5 @@ def rename_brackets(folder_path):
 
 
 if __name__ == "__main__":
-    target_dir = "./img"
+    target_dir = str(Path(__file__).resolve().parent / "img")
     rename_brackets(target_dir)

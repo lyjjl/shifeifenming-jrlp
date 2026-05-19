@@ -1,0 +1,9 @@
+// ==UserScript==
+// @name         今日老婆
+// @author       是非，艾因，群友
+// @version      1.3.0
+// @description  今日老婆 - 每日随机 GalGame/Anime 角色
+// @timestamp    20240520
+// @license      Apache-2.0
+// @homepageURL  https://github.com/shifeifenming/jrlp
+// ==/UserScript==
