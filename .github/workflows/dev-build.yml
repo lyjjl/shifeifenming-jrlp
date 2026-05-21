@@ -22,23 +22,24 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: latest
           cache: pnpm
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
 
       - name: Build and package (without images)
         run: |
           chmod +x build.sh
-          ./build.sh
+          ./build.sh --dir dist/dev-build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jrlp-dev-build-${{ github.sha }}
-          path: dist/jrlp-build.zip
+          name: jrlp-dev-build-${{ env.SHORT_SHA }}
+          path: dist/dev-build/
           retention-days: 7

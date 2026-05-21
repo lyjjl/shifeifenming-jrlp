@@ -1,26 +1,35 @@
 #!/usr/bin/env bash
 # ============================================================
 # build.sh - jrlp-sealdice-plugin 打包脚本
-# 编译 TypeScript 插件并打包后端文件到一个 zip 压缩包
+# 编译 TypeScript 插件并打包后端文件
 #
 # 用法:
-#   ./build.sh                      # 默认: dist/jrlp-build.zip (不含图片)
-#   ./build.sh dist foo.zip         # 指定路径和文件名
-#   ./build.sh dist foo.zip withimg # 包含 backend/img/
-#
-# 默认:
-#   output-dir: dist
-#   zip-name:   jrlp-build.zip
-#   第三个参数:  省略或任意值=不含图片, withimg=包含图片
+#   ./build.sh                              # → dist/jrlp-build.zip (不含图片)
+#   ./build.sh dist foo.zip                 # → 自定义路径/文件名
+#   ./build.sh dist foo.zip withimg         # → 包含 backend/img/
+#   ./build.sh --dir output                 # → 直接输出到 output/ 目录 (不打包)
+#   ./build.sh --dir output withimg         # → 输出到目录 (含图片)
 # ============================================================
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-OUTPUT_DIR="${1:-dist}"
-ZIP_NAME="${2:-jrlp-build.zip}"
-INCLUDE_IMG="${3:-}" # 设为 "withimg" 则包含图片
-
 cd "$ROOT_DIR"
+
+# ---- 解析参数 ----
+MODE="zip" # zip 或 dir
+OUTPUT_DIR=""
+ZIP_NAME=""
+INCLUDE_IMG=""
+
+if [ "${1:-}" = "--dir" ]; then
+	MODE="dir"
+	OUTPUT_DIR="${2:-dist}"
+	INCLUDE_IMG="${3:-}"
+else
+	OUTPUT_DIR="${1:-dist}"
+	ZIP_NAME="${2:-jrlp-build.zip}"
+	INCLUDE_IMG="${3:-}"
+fi
 
 # ---- 1. 安装依赖并编译 JS 插件 ----
 echo "==> Installing dependencies..."
@@ -54,14 +63,19 @@ if [ "$INCLUDE_IMG" = "withimg" ]; then
 	echo "==> Including backend/img/..."
 	cp -r backend/img "$STAGING_DIR/backend/"
 else
-	echo "==> Skipping backend/img/ (use 'withimg' as 3rd arg to include)"
+	echo "==> Skipping backend/img/ (use 'withimg' to include)"
 fi
 
-# ---- 3. 打包为 zip ----
-echo "==> Creating archive: $OUTPUT_DIR/$ZIP_NAME"
-mkdir -p "$OUTPUT_DIR"
-rm -f "$OUTPUT_DIR/$ZIP_NAME"
-
-(cd "$STAGING_DIR" && zip -r "$ROOT_DIR/$OUTPUT_DIR/$ZIP_NAME" .)
-
-echo "==> Done: $(du -sh "$OUTPUT_DIR/$ZIP_NAME" | cut -f1)  $OUTPUT_DIR/$ZIP_NAME"
+# ---- 3. 输出 ----
+if [ "$MODE" = "dir" ]; then
+	mkdir -p "$OUTPUT_DIR"
+	rm -rf "${OUTPUT_DIR:?}/"*
+	cp -r "$STAGING_DIR"/* "$OUTPUT_DIR/"
+	echo "==> Done: files staged in $OUTPUT_DIR/"
+else
+	mkdir -p "$OUTPUT_DIR"
+	rm -f "$OUTPUT_DIR/$ZIP_NAME"
+	echo "==> Creating archive: $OUTPUT_DIR/$ZIP_NAME"
+	(cd "$STAGING_DIR" && zip -r "$ROOT_DIR/$OUTPUT_DIR/$ZIP_NAME" .)
+	echo "==> Done: $(du -sh "$OUTPUT_DIR/$ZIP_NAME" | cut -f1)  $OUTPUT_DIR/$ZIP_NAME"
+fi
