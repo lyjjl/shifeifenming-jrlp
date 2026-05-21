@@ -1,0 +1,69 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag (e.g. v1.4.0)"
+        required: true
+        type: string
+      title:
+        description: "Release title"
+        required: true
+        type: string
+        default: "jrlp-sealdice-plugin"
+      prerelease:
+        description: "Mark as pre-release"
+        required: false
+        type: boolean
+        default: false
+      include_images:
+        description: "Include backend/img/ in a separate zip"
+        required: false
+        type: boolean
+        default: false
+      body:
+        description: "Release notes (supports Markdown)"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Build and package (without images)
+        run: |
+          chmod +x build.sh
+          ./build.sh dist "jrlp-${{ inputs.version }}.zip"
+
+      - name: Build and package (with images)
+        if: ${{ inputs.include_images }}
+        run: |
+          ./build.sh dist "jrlp-${{ inputs.version }}-with-images.zip" withimg
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.title }} ${{ inputs.version }}
+          body: ${{ inputs.body }}
+          prerelease: ${{ inputs.prerelease }}
+          files: dist/jrlp-${{ inputs.version }}*.zip
+          generate_release_notes: true
