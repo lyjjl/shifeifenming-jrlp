@@ -93,15 +93,22 @@ async def get_random_character_data(image_format: str = "url"):
 
     selected_rel_path, full_path = await asyncio.to_thread(select_accessible_image)
 
-    file_name_without_extension = full_path.stem
     path_with_slashes = selected_rel_path.replace(os.sep, "/")
     encoded_sub_path = urllib.parse.quote(path_with_slashes)
     image_sub = f"/img/{encoded_sub_path}"
 
-    debug_log(f"选中图片: {selected_rel_path} -> 编码后路径: {image_sub}")
+    rel_path_parts = path_with_slashes.split("/")
+    if len(rel_path_parts) > 1:
+        character_name = rel_path_parts[0]
+    else:
+        character_name = full_path.stem
+
+    debug_log(
+        f"选中图片: {selected_rel_path} -> 角色: {character_name} -> 路径: {image_sub}"
+    )
 
     result: dict = {
-        "filename": file_name_without_extension,
+        "filename": character_name,
         "image_sub": image_sub,
     }
 
